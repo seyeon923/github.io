@@ -1,5 +1,0 @@
----
-title: "Kim Se-yeon"
----
-
-Welcome 
