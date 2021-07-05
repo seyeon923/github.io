@@ -6,12 +6,19 @@ categories: C/C++ Python Boost
 ---
 
 ## Overview
+<hr>
 Microsoft Visual Studio 에서 Boost Python 라이브러리를 활용하여 C/C++ 함수(라이브러리)를 Python 모듈로 Export 하는 방법을 알아본다.
 
+<br>
+
 ## Boost C++ Library 설치
-### 1. Boost C++ Library 1.76.0 버전을 다운로드한다.
-Boost 1.76.0 버전은 https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/ 에서 다운 받을 수 있다.<br>
+<hr>
+
+### 1. Boost C++ Library 1.76.0 버전을 다운로드한다.<br>
+Boost 1.76.0 버전은 [여기][boost_1_76_0_link] 에서 다운 받을 수 있다.<br>
 위 링크에서 [boost_1_76_0.7z][boost_1_76_0.7z_link] 혹은 [boost_1_76_0.zip][boost_1_76_0.zip_link] 을 다운로드 받은 뒤 압축을 풀어 준다.
+
+<br>
 
 ### 2. Boost Python Library를 빌드한다.
 Boost 라이브러리는 기본적으로 Header-only library로 빌드가 따로 필요없지만 Boost Python 라이브러리의 경우는 빌드가 필요하다.<br>
@@ -47,29 +54,42 @@ using python
 <br>
 
 빌드가 성공적으로 완료되면 `boost_1_76_0/stage/lib` 에 `boost_python`으로 시작되는 `.dll`, `.lib` 파일들이 생성된 것을 확인할 수 있다.<br>
+
 <br>
+
 B2의 자세한 사용방법은 [여기](https://www.boost.org/doc/libs/1_76_0/tools/build/doc/html/index.html)에서 확인할 수 있다.
+
+<br>
 
 ### 3. Boost Python Library Linking
 #### 3.1. Visual Studio에서 C++ DLL Project를 생성한다.
 ![DLL Project Creation1](/assets/2021-07-04-Exporting-C_C++_Library_to_Python_Module_by_Boost_Python/DLL_Project_Creation1.png)<br>
 ![DLL Project Creation2](/assets/2021-07-04-Exporting-C_C++_Library_to_Python_Module_by_Boost_Python/DLL_Project_Creation2.png)
 
+<br>
+
 #### 3.2. Project 설정
-##### Target Extension 설정
+
+* **Target Extension 설정**<br>
 다음과 같이 프로젝트 설정의 `Advanced - Target File Extension` 에서 Target File Extension을 Python Module Extension인 .pyd로 변경한다.<br>
 ![Set Project Config Target File Extension](/assets/2021-07-04-Exporting-C_C++_Library_to_Python_Module_by_Boost_Python/Set_Project_Config_Target_Extension.png)
 
-#### Include Path 설정
+<br>
+
+* **Include Path 설정**<br>
 다음과 같이 Boost C++ Libarary의 Include 경로와 Python의 Include 경로를 추가한다.<br>
 ![Set Project Config Include Paths](/assets/2021-07-04-Exporting-C_C++_Library_to_Python_Module_by_Boost_Python/Set_Project_Config_Include_Paths.png)
 위 이미지에서 `%BOOST_ROOT%`는 위에서 다운받은 `boost_1_76_0` 폴더의 경로이며,  <br>
-`%PYTHON_HOME%`은 Boost Python 라이브러리를 빌드할 때 설정했던 python.exe가 있는 폴더로 Boost Python 라이브러리 빌드 시 설정하였던 Include 경로와 동일하게 설정하면 된다.<br>
+`%PYTHON_HOME%`은 Boost Python 라이브러리를 빌드할 때 설정했던 python.exe가 있는 폴더로 Boost Python 라이브러리 빌드 시 설정하였던 Include 경로와 동일하게 설정하면 된다.
 
-##### Library Path 설정
+<br>
+
+* **Library Path 설정**<br>
 다음과 같이 위에서 빌드했던 Boost Python 라이브러리와 Python 라이브러리 경로를 설정해준다.<br>
 ![Set Project Config Include Paths](/assets/2021-07-04-Exporting-C_C++_Library_to_Python_Module_by_Boost_Python/Set_Project_Config_Library_Paths.png)
 각각 Boost Python 빌드를 통해 생성된 라이브러리 파일이 있는 경로와 Boost Python 빌드 시 설정했던 Python 라이브러리 경로이다.
+
+<br>
 
 #### 3.3. Python Module 생성
 다음 소스코드를 추가한다.<br>
@@ -89,11 +109,11 @@ BOOST_PYTHON_MODULE(HelloWorld) {
 }
 ```
 
-위 코드는 C++ `Greet()` 함수를 Python Module `HelloWorld` 에 `Greet` 라는 이름을 export하는 코드이다.
+위 코드는 C++ `Greet()` 함수를 Python Module `HelloWorld` 에 `Greet` 라는 이름을 export하는 코드이다.<br>
 
 `BOOST_PYTHON_MODULE(HelloWorld)`에서 `HelloWorld` 부분은 export 하려는 모듈 이름으로 Project Name과 동일하게 `HelloWorld` 라는 이름의 모듈을 export할 것을 의미하며, <br>
 해당 모듈에 노출시키려는 함수, 변수, 클래스 등을 해당 블럭안에 선언하여 해당 모듈에 노출 시키게 된다.<br>
-def 함수의 첫 번째 인자는 파이썬에서 노출되는 이름을 나타내고, 두 번째 인자는 해당 이름으로 노출 시키려는 함수 포인터 혹은 함수를 전달한다.<br>
+`def` 함수의 첫 번째 인자는 파이썬에서 노출되는 이름(**"Greet"**)을 나타내고, 두 번째 인자는 해당 이름으로 노출 시키려는 함수 포인터 혹은 함수(`Greet` or `&Greet`)를 전달한다.<br>
 <br>
 
 위와 같은 소스코드를 추가한 뒤 빌드하게 되면 출력디렉터리에 `HelloWorld.pyd` 라는 이름으로 파이썬 모듈이 생성되는 것을 확인할 수 있다.<br>
@@ -107,7 +127,10 @@ import HelloWorld
 HelloWorld.Greet() # 'Hello World'
 ```
 
+<br>
+
 ## C++ Class 내보내기
+<hr>
 
 ``` c++
 struct World {
@@ -154,6 +177,8 @@ obj.Greet() # Error
 obj = CppClass.World('Hi, World') # Error
 ```
 
+<br>
+
 ### 생성자 및 멤버 함수
 디폴트 생성자외의 생성자나 멤버함수를 노출시키려면 `class_::def` 함수를 통해 노출 시킬 수 있다.<br>
 
@@ -179,6 +204,8 @@ obj1.Greet() # 'Hello World'
 obj2 = CppClass.obj('Hi, Wolrd')
 obj2.Greet() # 'Hi, World'
 ```
+
+<br>
 
 ### 멤버 변수
 생성자와 멤버함수 외에 멤버변수도 노출 시킬 수 있다.<br>
@@ -222,6 +249,8 @@ obj.val = -10 # ok
 print(obj.val) # -10.0
 ```
 
+<br>
+
 ### Class Property
 객체지향 프로그래밍에서 클래스 멤버를 바로 노출 시키기 보다는 해당 멤버 변수는 private 으로 숨기고 getter/setter 함수를 제공하는 것이 일반적이다.<br>
 Boost Python 라이브러리에서는 getter/setter 함수를 통해 프로퍼티를 선언할 수 있다.
@@ -260,6 +289,8 @@ print(f.Val) # 2.718
 print(f.RoVal) # 2.718
 f.RoVal = 0 # Error
 ```
+
+<br>
 
 ### 상속
 다음과 같이 상속관계의 클래스 2개와 이를 인자로 받는 함수가 다음과 같이 있다고 해보자.
@@ -333,7 +364,7 @@ def("NewDerived", NewDerived,
 또한 함수 인자가 각각 참조와 포인터인 경우 모두 잘 동작하는 것을 알 수 있다.
 
 ``` python
- import CppClass
+import CppClass
 
 b = CppClass.Base()
 d = CppClass.Derived()
@@ -365,7 +396,7 @@ CppClass.RefCallBase(d2)
 ```
 
 추가로, `CppClass.NewDerived()` 함수를 계속 호출 해보면 따로 반횐된 객체를 delete 해주지 않아도 중간 중간 소멸자가 호출 되는 것을 알 수 있다.<br>
-`return_value_policy`를 `manage_new_object`로 지정하여 파이썬에서 해당 객체의 소멸 시점을 관리하기 때문인데, `manage_new_object` 대신 `reference_existing_object`로 지정하게 되면 반환된 객체가 소멸되지 않고 메모리 사용량이 계속 증가하는 것을 확읺알 수 있다.<br>
+`return_value_policy`를 `manage_new_object`로 지정하여 파이썬에서 해당 객체의 소멸 시점을 관리하기 때문인데, `manage_new_object` 대신 `reference_existing_object`로 지정하게 되면 반환된 객체가 소멸되지 않고 메모리 사용량이 계속 증가하는 것을 확인할 수 있다.<br>
 <br>
 하지만 위의 경우 하나의 문제가 있는데 `CppClass.Base`의 파생 클래스를 파이썬 내에서 선언하게 되면 다형성이 제대로 동작하지 않는 다는 것이다.
 
@@ -443,6 +474,7 @@ struct Base2Wrap :
 ```
 
 순수 가상함수와 디폴트 구현이 있는 가상함수, 그리고 반환 값이 있는 경우와 없는경우 약간씩 래핑하는 방법이 달라지는 것을 알 수 있다.<br>
+<br>
 `Base2`를 모듈에 선언은 다음과 같이 한다.
 
 ``` c++
@@ -497,6 +529,8 @@ CppClass.CallBase2Funcs(der2py)
 ```
 
 파이썬에서 파생된 클래스 에서도 다형성이 정상적으로 동작하는 것을 알 수 있다.
+
+<br>
 
 ### Class Operators and Special Methods
 다음은 파이썬에서 지원하는 일부 클래스 연산자와 특수 메소드를 파이썬 모듈에 노출시키는 예제이다.
@@ -591,6 +625,8 @@ class_<Double>("Double")
 }
 ```
 
+<br>
+
 다음은 이를 테스트한 파이썬 코드이다.
 ``` python
 import CppClass
@@ -647,5 +683,6 @@ print('abs(d1) = {}'.format(d3.Val)) # abs(d1) = 2.0
 print(d3) # Double is holding 2
 ```
 
+[boost_1_76_0_link]: https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/
 [boost_1_76_0.7z_link]: https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.7z
 [boost_1_76_0.zip_link]: https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.zip
