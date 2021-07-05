@@ -7,7 +7,7 @@ categories: C/C++ Python Boost
 
 ## Overview
 <hr>
-Microsoft Visual Studio 에서 Boost Python 라이브러리를 활용하여 C/C++ 함수(라이브러리)를 Python 모듈로 Export 하는 방법을 알아본다.
+Microsoft Visual Studio 에서 Boost Python 라이브러리를 활용하여 C/C++ 라이브러리를 Python 모듈로 Export 하는 방법을 알아본다.
 
 <br>
 
