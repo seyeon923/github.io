@@ -78,7 +78,7 @@ B2의 자세한 사용방법은 [여기](https://www.boost.org/doc/libs/1_76_0/t
 
 * **Include Path 설정**<br>
 다음과 같이 Boost C++ Libarary의 Include 경로와 Python의 Include 경로를 추가한다.<br>
-![Set Project Config Include Paths](/assets/2021-07-04-Exporting-C_C++_Library_to_Python_Module_by_Boost_Python/Set_Project_Config_Include_Paths.png)
+![Set Project Config Include Paths](/assets/2021-07-04-Exporting-C_C++_Library_to_Python_Module_by_Boost_Python/Set_Project_Config_Include_Paths.png) <br>
 위 이미지에서 `%BOOST_ROOT%`는 위에서 다운받은 `boost_1_76_0` 폴더의 경로이며,  <br>
 `%PYTHON_HOME%`은 Boost Python 라이브러리를 빌드할 때 설정했던 python.exe가 있는 폴더로 Boost Python 라이브러리 빌드 시 설정하였던 Include 경로와 동일하게 설정하면 된다.
 
@@ -86,7 +86,7 @@ B2의 자세한 사용방법은 [여기](https://www.boost.org/doc/libs/1_76_0/t
 
 * **Library Path 설정**<br>
 다음과 같이 위에서 빌드했던 Boost Python 라이브러리와 Python 라이브러리 경로를 설정해준다.<br>
-![Set Project Config Include Paths](/assets/2021-07-04-Exporting-C_C++_Library_to_Python_Module_by_Boost_Python/Set_Project_Config_Library_Paths.png)
+![Set Project Config Include Paths](/assets/2021-07-04-Exporting-C_C++_Library_to_Python_Module_by_Boost_Python/Set_Project_Config_Library_Paths.png) <br>
 각각 Boost Python 빌드를 통해 생성된 라이브러리 파일이 있는 경로와 Boost Python 빌드 시 설정했던 Python 라이브러리 경로이다.
 
 <br>
