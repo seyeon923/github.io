@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Boost Python 라이브러리를 활용하여 C/C++ 함수를 Python Module로 Export하기"
+title:  "Boost Python 라이브러리를 활용하여 C/C++ 라이브러리를 Python Module로 Export하기"
 date:   2021-07-04 21:08:00 +0900
 categories: C/C++ Python Boost
 ---
@@ -52,23 +52,23 @@ B2의 자세한 사용방법은 [여기](https://www.boost.org/doc/libs/1_76_0/t
 
 ## 3. Boost Python Library Linking
 ### 3.1. Visual Studio에서 C++ DLL Project를 생성한다.
-![DLL Project Creation1](2021-07-04-Exporting-C_C++_Library_to_Python_Module_by_Boost_Python_Resources/DLL_Project_Creation1.png)<br>
-![DLL Project Creation2](2021-07-04-Exporting-C_C++_Library_to_Python_Module_by_Boost_Python_Resources/DLL_Project_Creation2.png)
+![DLL Project Creation1](Exporting-C_C++_Library_to_Python_Module_by_Boost_Python_Resources/DLL_Project_Creation1.png)<br>
+![DLL Project Creation2](Exporting-C_C++_Library_to_Python_Module_by_Boost_Python_Resources/DLL_Project_Creation2.png)
 
 ### 3.2. Project 설정
 #### Target Extension 설정
 다음과 같이 프로젝트 설정의 `Advanced - Target File Extension` 에서 Target File Extension을 Python Module Extension인 .pyd로 변경한다.<br>
-![Set Project Config Target File Extension](2021-07-04-Exporting-C_C++_Library_to_Python_Module_by_Boost_Python_Resources/Set_Project_Config_Target_Extension.png)
+![Set Project Config Target File Extension](Exporting-C_C++_Library_to_Python_Module_by_Boost_Python_Resources/Set_Project_Config_Target_Extension.png)
 
 ### Include Path 설정
 다음과 같이 Boost C++ Libarary의 Include 경로와 Python의 Include 경로를 추가한다.<br>
-![Set Project Config Include Paths](2021-07-04-Exporting-C_C++_Library_to_Python_Module_by_Boost_Python_Resources/Set_Project_Config_Include_Paths.png)
+![Set Project Config Include Paths](Exporting-C_C++_Library_to_Python_Module_by_Boost_Python_Resources/Set_Project_Config_Include_Paths.png)
 위 이미지에서 `%BOOST_ROOT%`는 위에서 다운받은 `boost_1_76_0` 폴더의 경로이며,  <br>
 `%PYTHON_HOME%`은 Boost Python 라이브러리를 빌드할 때 설정했던 python.exe가 있는 폴더로 Boost Python 라이브러리 빌드 시 설정하였던 Include 경로와 동일하게 설정하면 된다.<br>
 
 #### Library Path 설정
 다음과 같이 위에서 빌드했던 Boost Python 라이브러리와 Python 라이브러리 경로를 설정해준다.<br>
-![Set Project Config Include Paths](2021-07-04-Exporting-C_C++_Library_to_Python_Module_by_Boost_Python_Resources/Set_Project_Config_Library_Paths.png)
+![Set Project Config Include Paths](Exporting-C_C++_Library_to_Python_Module_by_Boost_Python_Resources/Set_Project_Config_Library_Paths.png)
 각각 Boost Python 빌드를 통해 생성된 라이브러리 파일이 있는 경로와 Boost Python 빌드 시 설정했던 Python 라이브러리 경로이다.
 
 ### 3.3. Python Module 생성
