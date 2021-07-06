@@ -57,6 +57,15 @@ using python
 
 <br>
 
+참고로 여러 버전의 MSVC 가 설치되어 있는 경우 옵션 `toolset=msvc-<version>` 으로 버전을 지정할 수 있다.<br>
+```
+# Visual Studio 2019
+./b2.exe toolset=msvc-142 --build-type=complete --with-python stage
+
+# Visual Studio 2017
+./b2.exe toolset=msvc-141 --build-type=complete --with-python stage
+```
+
 B2의 자세한 사용방법은 [여기](https://www.boost.org/doc/libs/1_76_0/tools/build/doc/html/index.html)에서 확인할 수 있다.
 
 <br>
