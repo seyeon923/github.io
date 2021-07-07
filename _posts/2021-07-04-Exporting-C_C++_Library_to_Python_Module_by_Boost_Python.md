@@ -11,6 +11,16 @@ Microsoft Visual Studio 에서 Boost Python 라이브러리를 활용하여 C/C+
 
 <br>
 
+## Boost Python 특징
+<hr>
+
+- 기존 C/C++ 인터페이스의 변경없이 그대로 사용할 수 있다.
+- C/C++ <-> Python 양뱡향 인터페이싱이 가능하다.
+- Boost Library 만으로 별도의 툴 설치없이 파이썬 모듈을 만들 수 있다.
+- Declarative Interface Definition Language(IDL)와 유사한 형태로 익히고 사용하기 쉽다.
+
+<br>
+
 ## Boost C++ Library 설치
 <hr>
 
@@ -690,6 +700,141 @@ d3 = abs(d1)
 print('abs(d1) = {}'.format(d3.Val)) # abs(d1) = 2.0
 
 print(d3) # Double is holding 2
+```
+
+## Functions
+<hr>
+
+### Overloading
+다음처럼 오버로딩 된 함수의 경우 각 오버로드된 (멤버)함수 포인터 타입의 변수를 전달하거나 해당 (멤버)함수 포인터 타입으로 형변환 하여 하나씩 노출시킬 수 있다.<br>
+
+``` c++
+struct OverloadedFoos {
+    bool Foo(int i) {
+        std::cout << "OverloadedFoos::Foo(int)" << std::endl;
+        return true;
+    }
+    bool Foo(int i, double d) {
+        std::cout << "OverloadedFoos::Foo(int, double)" << std::endl;
+        return true;
+    }
+    int Foo(int i1, int i2, int i3) {
+        std::cout << "OverloadedFoos::Foo(int, int, int)" << std::endl;
+        return i1 + i2 + i3;
+    }
+};
+```
+
+다음은 각 오버로딩된 멤버함수를 각각 하나씩 노출시킨 코드이다.<br>
+
+``` c++
+bool (OverloadedFoos:: * foo_ptr1)(int) = &OverloadedFoos::Foo;
+bool (OverloadedFoos:: * foo_ptr2)(int, double) = &OverloadedFoos::Foo;
+class_<OverloadedFoos>("OverloadedFoos")
+    .def("Foo", foo_ptr1) // by passing member function pointer varaible
+    .def("Foo", foo_ptr2) // by passing member function pointer varaible
+    .def("Foo", static_cast<int (OverloadedFoos::*)(int, int, int)>
+        (&OverloadedFoos::Foo)) // by type casting
+    ;
+```
+
+<br>
+
+#### Default Argument
+디폴트 인자가 있는 함수의 경우 다음처럼 간단한 래핑 함수를 이용하여 하나씩 노출 시킴으로 디폴트 인자의 효과를 낼 수 있다.
+
+``` c++
+void Bar(int i, double d = 3.14, char const* str = "Hello World") {
+    std::cout << "Bar(" << i << ", " << d << ", '" << str << "')" << std::endl;
+}
+
+// Thin wrapper for Bar
+void Bar1(int i) { Bar(i); }
+void Bar2(int i, double d) { Bar(i, d); }
+
+BOOST_PYTHON_MODULE(PyModuleName){
+    void (*bar_all_args_fptr)(int, double, char const*) = &Bar; // Lost default!!!
+
+    def("Bar", &Bar1); // one argument
+    def("Bar", &Bar2); // two arguments
+    def("Bar", bar_all_args_fptr); // all arguments
+}
+```
+
+<br>
+
+#### Auto Overloading
+위의 함수 `Bar` 의 경우 `BOOST_PYTHON_FUNCTION_OVERLOADS` 매크로를 통해 쉽게 래핑할 수 있다.
+
+``` c++
+BOOST_PYTHON_FUNCTION_OVERLOADS(bar_overloads, Bar, 1, 3) 
+BOOST_PYTHON_MODULE(PyModuleName){
+    def("Bar", Bar, bar_overloads());
+}
+```
+
+`BOOST_PYTHON_FUNCTION_OVERLOADS`의 첫 번째 인자는 `def` 함수에 전달되는 generator name,<br>
+두 번째 인자는 오버로딩된 함수의 최소 인자 수,<br>
+세 번째 인자는 오버로딩된 함수의 최대 인자 수이다.<br>
+
+<br>
+
+`BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS` 매크로를 통해 클래스 멤버함수의 오버로딩도 쉽게 할 수 있다.
+
+``` c++
+struct DefaultArgFoo {
+    void Foo(int i = 0, double d = 3.14, char const* str = "Hello World") {
+        std::cout << "DefaultArgFoo::(" << i << ", " << d << ", '" << str << "')" << std::endl;
+    }
+};
+
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(m_foo_overloads, Foo, 0, 3)
+BOOST_PYTHON_MODULE(PyModuleName){
+    class_<DefaultArgFoo>("DefaultArgFoo")
+        .def("Foo", &DefaultArgFoo::Foo, m_foo_overloads());
+}
+```
+
+<br>
+
+위의 두 매크로를 통한 오버로딩을 위해선 디폴트인자가 있는 함수처럼 인자가 하나씩 추가되는 형태여야 한다.
+예를들어 다음과 같은 경우는 위의 매크로 사용이 불가하고 직접 래퍼 함수를 통해 노출 시켜야 한다.
+
+``` c++
+void Foo(int){
+    std::cout << "Foo" << std::endl;
+}
+void Foo(double, double){
+    std::cout << "Foo(double, double)" << std::endl;
+}
+```
+
+<br>
+
+다음처럼 직접 래핑하는 것과 매크로로 자동화 하는 방식을 섞을 수도 있다.
+
+``` c++
+void Baz() {
+    std::cout << "Baz()" << std::endl;
+}
+void Baz(int i) {
+    std::cout << "Baz(int)" << std::endl;
+}
+void Baz(int i, double d) {
+    std::cout << "Baz(int, double)" << std::endl;
+}
+void Baz(int i, double, const std::string& str) {
+    std::cout << "Baz(int, double, const string&)" << std::endl;
+}
+void Baz(int, const std::string&) {
+    std::cout << "Baz(int, const string&)" << std::endl;
+}
+
+BOOST_PYTHON_FUNCTION_OVERLOADS(baz_overaloads, Baz, 0, 3)
+BOOST_PYTHON_MODULE(PyModuleName) {
+    def("Baz", (void(*)(int, double, const std::string&))0, baz_overaloads());
+    def("Baz", static_cast<void(*)(int, const std::string&)>(&Baz));
+}
 ```
 
 [boost_1_76_0_link]: https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/
