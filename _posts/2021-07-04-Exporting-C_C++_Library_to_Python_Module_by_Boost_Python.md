@@ -6,13 +6,11 @@ categories: C/C++ Python Boost
 ---
 
 ## Overview
-<hr>
 Microsoft Visual Studio 에서 Boost Python 라이브러리를 활용하여 C/C++ 라이브러리를 Python 모듈로 Export 하는 방법을 알아본다.
 
 <br>
 
 ## Boost Python 특징
-<hr>
 
 - 기존 C/C++ 인터페이스의 변경없이 그대로 사용할 수 있다.
 - C/C++ <-> Python 양뱡향 인터페이싱이 가능하다.
@@ -22,7 +20,6 @@ Microsoft Visual Studio 에서 Boost Python 라이브러리를 활용하여 C/C+
 <br>
 
 ## Boost C++ Library 설치
-<hr>
 
 ### 1. Boost C++ Library 1.76.0 버전을 다운로드한다.<br>
 Boost 1.76.0 버전은 [여기][boost_1_76_0_link] 에서 다운 받을 수 있다.<br>
@@ -149,7 +146,6 @@ HelloWorld.Greet() # 'Hello World'
 <br>
 
 ## C++ Class 내보내기
-<hr>
 
 ``` c++
 struct World {
@@ -702,8 +698,9 @@ print('abs(d1) = {}'.format(d3.Val)) # abs(d1) = 2.0
 print(d3) # Double is holding 2
 ```
 
+<br>
+
 ## Functions
-<hr>
 
 ### Overloading
 다음처럼 오버로딩 된 함수의 경우 각 오버로드된 (멤버)함수 포인터 타입의 변수를 전달하거나 해당 (멤버)함수 포인터 타입으로 형변환 하여 하나씩 노출시킬 수 있다.<br>
