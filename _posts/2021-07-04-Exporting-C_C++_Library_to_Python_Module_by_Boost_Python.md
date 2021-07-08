@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: single
 title:  "Boost Python 라이브러리를 활용하여 C/C++ 라이브러리를 Python Module로 Export하기"
 date:   2021-07-04 21:08:00 +0900
 categories: C/C++ Python Boost
@@ -8,8 +8,6 @@ categories: C/C++ Python Boost
 ## Overview
 Microsoft Visual Studio 에서 Boost Python 라이브러리를 활용하여 C/C++ 라이브러리를 Python 모듈로 Export 하는 방법을 알아본다.
 
-<br>
-
 ## Boost Python 특징
 
 - 기존 C/C++ 인터페이스의 변경없이 그대로 사용할 수 있다.
@@ -17,15 +15,11 @@ Microsoft Visual Studio 에서 Boost Python 라이브러리를 활용하여 C/C+
 - Boost Library 만으로 별도의 툴 설치없이 파이썬 모듈을 만들 수 있다.
 - Declarative Interface Definition Language(IDL)와 유사한 형태로 익히고 사용하기 쉽다.
 
-<br>
-
 ## Boost C++ Library 설치
 
-### 1. Boost C++ Library 1.76.0 버전을 다운로드한다.<br>
+### 1. Boost C++ Library 1.76.0 버전을 다운로드한다.
 Boost 1.76.0 버전은 [여기][boost_1_76_0_link] 에서 다운 받을 수 있다.<br>
 위 링크에서 [boost_1_76_0.7z][boost_1_76_0.7z_link] 혹은 [boost_1_76_0.zip][boost_1_76_0.zip_link] 을 다운로드 받은 뒤 압축을 풀어 준다.
-
-<br>
 
 ### 2. Boost Python Library를 빌드한다.
 Boost 라이브러리는 기본적으로 Header-only library로 빌드가 따로 필요없지만 Boost Python 라이브러리의 경우는 빌드가 필요하다.<br>
@@ -35,14 +29,16 @@ Boost 라이브러리는 기본적으로 Header-only library로 빌드가 따로
 <br>
 빌드에 사용할 Python 환경을 설정하기 위해 `project-config.jam` 파일을 연다.<br>
 `project-config.jam` 파일에 다음과 같은 구문을 추가한다.
-``` jam
+
+``` 
 using python : [version] : [command-or-prefix] : [includes] : [libraries] : [conditions] : [extension-suffix] ;
 ```
+
 위 구문에 대한 설명은 [여기](https://www.boost.org/doc/libs/1_76_0/tools/build/doc/html/index.html#bbv2.reference.tools.libraries.python)에서 확인할 수 있다.<br>
 <br>
 필자는 anaconda의 64 bit 3.8 버전의 파이썬을 사용하였으며 다음의 내용을 `project-config.jam`에 추가하였다.
 
-``` jam
+``` 
 using python
 : 3.8 # version
 : C:/Users/tpdus/anaconda3/python.exe # Interperter/path to dir
@@ -52,19 +48,16 @@ using python
 ;
 ```
 
-<br>
-
 커맨드 창에서 `boost_1_76_0` 폴더로 이동한 뒤 다음 명령어를 실행한다.
 ```
 .\b2.exe toolset=msvc --build-type=complete --with-python stage
 ```
-<br>
 
 빌드가 성공적으로 완료되면 `boost_1_76_0/stage/lib` 에 `boost_python`으로 시작되는 `.dll`, `.lib` 파일들이 생성된 것을 확인할 수 있다.<br>
 
-<br>
+참고로 여러 버전의 MSVC 가 설치되어 있는 경우 옵션 `toolset=msvc-<version>` 으로 버전을 지정할 수 있다.
 
-참고로 여러 버전의 MSVC 가 설치되어 있는 경우 옵션 `toolset=msvc-<version>` 으로 버전을 지정할 수 있다.<br>
+
 ```
 # Visual Studio 2019
 ./b2.exe toolset=msvc-142 --build-type=complete --with-python stage
@@ -75,14 +68,10 @@ using python
 
 B2의 자세한 사용방법은 [여기](https://www.boost.org/doc/libs/1_76_0/tools/build/doc/html/index.html)에서 확인할 수 있다.
 
-<br>
-
 ### 3. Boost Python Library Linking
 #### 3.1. Visual Studio에서 C++ DLL Project를 생성한다.
 ![DLL Project Creation1](/assets/2021-07-04-Exporting-C_C++_Library_to_Python_Module_by_Boost_Python/DLL_Project_Creation1.png)<br>
 ![DLL Project Creation2](/assets/2021-07-04-Exporting-C_C++_Library_to_Python_Module_by_Boost_Python/DLL_Project_Creation2.png)
-
-<br>
 
 #### 3.2. Project 설정
 
@@ -90,25 +79,19 @@ B2의 자세한 사용방법은 [여기](https://www.boost.org/doc/libs/1_76_0/t
 다음과 같이 프로젝트 설정의 `Advanced - Target File Extension` 에서 Target File Extension을 Python Module Extension인 .pyd로 변경한다.<br>
 ![Set Project Config Target File Extension](/assets/2021-07-04-Exporting-C_C++_Library_to_Python_Module_by_Boost_Python/Set_Project_Config_Target_Extension.png)
 
-<br>
-
 * **Include Path 설정**<br>
 다음과 같이 Boost C++ Libarary의 Include 경로와 Python의 Include 경로를 추가한다.<br>
 ![Set Project Config Include Paths](/assets/2021-07-04-Exporting-C_C++_Library_to_Python_Module_by_Boost_Python/Set_Project_Config_Include_Paths.png) <br>
 위 이미지에서 `%BOOST_ROOT%`는 위에서 다운받은 `boost_1_76_0` 폴더의 경로이며,  <br>
 `%PYTHON_HOME%`은 Boost Python 라이브러리를 빌드할 때 설정했던 python.exe가 있는 폴더로 Boost Python 라이브러리 빌드 시 설정하였던 Include 경로와 동일하게 설정하면 된다.
 
-<br>
-
 * **Library Path 설정**<br>
 다음과 같이 위에서 빌드했던 Boost Python 라이브러리와 Python 라이브러리 경로를 설정해준다.<br>
 ![Set Project Config Include Paths](/assets/2021-07-04-Exporting-C_C++_Library_to_Python_Module_by_Boost_Python/Set_Project_Config_Library_Paths.png) <br>
 각각 Boost Python 빌드를 통해 생성된 라이브러리 파일이 있는 경로와 Boost Python 빌드 시 설정했던 Python 라이브러리 경로이다.
 
-<br>
-
 #### 3.3. Python Module 생성
-다음 소스코드를 추가한다.<br>
+다음 소스코드를 추가한다.
 
 ``` c++
 // helloworld.cpp
@@ -131,7 +114,6 @@ BOOST_PYTHON_MODULE(HelloWorld) {
 해당 모듈에 노출시키려는 함수, 변수, 클래스 등을 해당 블럭안에 선언하여 해당 모듈에 노출 시키게 된다.<br>
 `def` 함수의 첫 번째 인자는 파이썬에서 노출되는 이름(**"Greet"**)을 나타내고, 두 번째 인자는 해당 이름으로 노출 시키려는 함수 포인터 혹은 함수(`Greet` or `&Greet`)를 전달한다.<br>
 <br>
-
 위와 같은 소스코드를 추가한 뒤 빌드하게 되면 출력디렉터리에 `HelloWorld.pyd` 라는 이름으로 파이썬 모듈이 생성되는 것을 확인할 수 있다.<br>
 해당 디렉터리에 Boost Python 빌드로 생성된 Boost Python DLL 파일을 복사해 준다.<br>(boost_pythonxx 로 시작하는 dll 파일로 Debug 모드로 빌드 한 경우 `gd` 가 파일명이 있는 것을 사용하고, Release 모드로 빌드 한 경우 `gd` 부분이 파일명에서 빠진 dll을 사용한다.)<br>
 <br>
@@ -142,8 +124,6 @@ import HelloWorld
 
 HelloWorld.Greet() # 'Hello World'
 ```
-
-<br>
 
 ## C++ Class 내보내기
 
@@ -192,8 +172,6 @@ obj.Greet() # Error
 obj = CppClass.World('Hi, World') # Error
 ```
 
-<br>
-
 ### 생성자 및 멤버 함수
 디폴트 생성자외의 생성자나 멤버함수를 노출시키려면 `class_::def` 함수를 통해 노출 시킬 수 있다.<br>
 
@@ -219,8 +197,6 @@ obj1.Greet() # 'Hello World'
 obj2 = CppClass.obj('Hi, Wolrd')
 obj2.Greet() # 'Hi, World'
 ```
-
-<br>
 
 ### 멤버 변수
 생성자와 멤버함수 외에 멤버변수도 노출 시킬 수 있다.<br>
@@ -251,7 +227,6 @@ class_<World>("World")
     .def_readwrite("val", &World::val)
     ;
 ```
-<br>
 
 다음은 `World`의 멤버변수 `msg`, `val`을 접근하는 코드이다.
 
@@ -264,13 +239,11 @@ obj.val = -10 # ok
 print(obj.val) # -10.0
 ```
 
-<br>
-
 ### Class Property
 객체지향 프로그래밍에서 클래스 멤버를 바로 노출 시키기 보다는 해당 멤버 변수는 private 으로 숨기고 getter/setter 함수를 제공하는 것이 일반적이다.<br>
 Boost Python 라이브러리에서는 getter/setter 함수를 통해 프로퍼티를 선언할 수 있다.
 
-``` C++
+``` c++
 struct FloatNum {
     FloatNum() : val_(0) {}
     FloatNum(float val) : val_(val) {}
@@ -304,8 +277,6 @@ print(f.Val) # 2.718
 print(f.RoVal) # 2.718
 f.RoVal = 0 # Error
 ```
-
-<br>
 
 ### 상속
 다음과 같이 상속관계의 클래스 2개와 이를 인자로 받는 함수가 다음과 같이 있다고 해보자.
@@ -351,7 +322,6 @@ class_<Base>("Base")
     .def("Func", &Base::Func)
     .def("VirtFunc", &Base::VirtFunc);
 ```
-
 <br>
 
 파생 클래스의 경우 노출 시킬 때 상위 클래스를 `class_`의 두 번째 템플릿 인자에 다음처럼 명시해 준다.
@@ -362,7 +332,6 @@ class_<Derived, bases<Base>>("Derived");
 
 위처럼 노출 시키게 되면 따로 함수 `Func()`나 `VirtFunc()`를 노출 시키지 않아도 `Base` 클래스를 노출 시킬 때 이미 노출 시켰으므로 파이썬에서 호출할 수 있다.<br>
 <br>
-
 위 두 클래스의 다형성을 확인해보기 위한 함수 `RefCall`, `PtrCall`, `NewDerived` 함수도 다음처럼 노출 시킨다.
 
 ``` c++
@@ -545,8 +514,6 @@ CppClass.CallBase2Funcs(der2py)
 
 파이썬에서 파생된 클래스 에서도 다형성이 정상적으로 동작하는 것을 알 수 있다.
 
-<br>
-
 ### Class Operators and Special Methods
 다음은 파이썬에서 지원하는 일부 클래스 연산자와 특수 메소드를 파이썬 모듈에 노출시키는 예제이다.
 
@@ -639,7 +606,6 @@ class_<Double>("Double")
     ;
 }
 ```
-
 <br>
 
 다음은 이를 테스트한 파이썬 코드이다.
@@ -698,8 +664,6 @@ print('abs(d1) = {}'.format(d3.Val)) # abs(d1) = 2.0
 print(d3) # Double is holding 2
 ```
 
-<br>
-
 ## Functions
 
 ### Overloading
@@ -735,8 +699,6 @@ class_<OverloadedFoos>("OverloadedFoos")
     ;
 ```
 
-<br>
-
 #### Default Argument
 디폴트 인자가 있는 함수의 경우 다음처럼 간단한 래핑 함수를 이용하여 하나씩 노출 시킴으로 디폴트 인자의 효과를 낼 수 있다.
 
@@ -758,8 +720,6 @@ BOOST_PYTHON_MODULE(PyModuleName){
 }
 ```
 
-<br>
-
 #### Auto Overloading
 위의 함수 `Bar` 의 경우 `BOOST_PYTHON_FUNCTION_OVERLOADS` 매크로를 통해 쉽게 래핑할 수 있다.
 
@@ -773,7 +733,6 @@ BOOST_PYTHON_MODULE(PyModuleName){
 `BOOST_PYTHON_FUNCTION_OVERLOADS`의 첫 번째 인자는 `def` 함수에 전달되는 generator name,<br>
 두 번째 인자는 오버로딩된 함수의 최소 인자 수,<br>
 세 번째 인자는 오버로딩된 함수의 최대 인자 수이다.<br>
-
 <br>
 
 `BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS` 매크로를 통해 클래스 멤버함수의 오버로딩도 쉽게 할 수 있다.
@@ -791,7 +750,6 @@ BOOST_PYTHON_MODULE(PyModuleName){
         .def("Foo", &DefaultArgFoo::Foo, m_foo_overloads());
 }
 ```
-
 <br>
 
 위의 두 매크로를 통한 오버로딩을 위해선 디폴트인자가 있는 함수처럼 인자가 하나씩 추가되는 형태여야 한다.
@@ -805,7 +763,6 @@ void Foo(double, double){
     std::cout << "Foo(double, double)" << std::endl;
 }
 ```
-
 <br>
 
 다음처럼 직접 래핑하는 것과 매크로로 자동화 하는 방식을 섞을 수도 있다.
