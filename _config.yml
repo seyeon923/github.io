@@ -136,9 +136,12 @@ footer:
     - label: "Facebook"
       icon: "fab fa-fw fa-facebook-square"
       # url:
+    - label: "LinkedIn"
+      icon: "fab fa-linkedin"
+      url: "https://www.linkedin.com/in/kim-se-yeon/"
     - label: "GitHub"
       icon: "fab fa-fw fa-github"
-      # url:
+      url: "https://github.com/tpdussla93"
     - label: "GitLab"
       icon: "fab fa-fw fa-gitlab"
       # url:
