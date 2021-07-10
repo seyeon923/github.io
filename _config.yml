@@ -310,6 +310,7 @@ defaults:
     values:
       layout: categories
       classes: wide
+      comments: false
 
   # category
   - scope:
@@ -318,3 +319,4 @@ defaults:
     values:
       layout: category
       classes: wide
+      comments: false
