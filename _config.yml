@@ -293,8 +293,7 @@ defaults:
       comments: false
       share: true
       related: true
-
-defaults:
+      
   # _pages
   - scope:
       path: ""
