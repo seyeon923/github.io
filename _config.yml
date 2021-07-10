@@ -303,3 +303,19 @@ defaults:
       type: pages
     values:
       layout: single
+
+  # categories
+  - scope:
+      path: ""
+      type: categories
+    values:
+      layout: categories
+      classes: wide
+
+  # category
+  - scope:
+      path: ""
+      type: category
+    values:
+      layout: category
+      classes: wide
