@@ -3,6 +3,8 @@ layout: single
 title:  "Boost Python 라이브러리를 활용하여 C/C++ 라이브러리를 Python Module로 Export하기"
 date:   2021-07-04 21:08:00 +0900
 categories: C/C++ Python Boost
+classes: narrow
+toc: true
 ---
 
 ## Overview
@@ -17,11 +19,12 @@ Microsoft Visual Studio 에서 Boost Python 라이브러리를 활용하여 C/C+
 
 ## Boost C++ Library 설치
 
-### 1. Boost C++ Library 1.76.0 버전을 다운로드한다.
+### 1. Boost C++ Library 다운로드
+현재 포스트 작성 중 가장 최신 버전인 1.76.0 버전을 다운로드한다.<br>
 Boost 1.76.0 버전은 [여기][boost_1_76_0_link] 에서 다운 받을 수 있다.<br>
 위 링크에서 [boost_1_76_0.7z][boost_1_76_0.7z_link] 혹은 [boost_1_76_0.zip][boost_1_76_0.zip_link] 을 다운로드 받은 뒤 압축을 풀어 준다.
 
-### 2. Boost Python Library를 빌드한다.
+### 2. Boost Python Library 빌드
 Boost 라이브러리는 기본적으로 Header-only library로 빌드가 따로 필요없지만 Boost Python 라이브러리의 경우는 빌드가 필요하다.<br>
 <br>
 압축을 푼 `boost_1_76_0` 폴더로 이동한 뒤 `bootstrap.bat` 을 실행한다.(Windows 기준)<br>
@@ -69,7 +72,7 @@ using python
 B2의 자세한 사용방법은 [여기](https://www.boost.org/doc/libs/1_76_0/tools/build/doc/html/index.html)에서 확인할 수 있다.
 
 ### 3. Boost Python Library Linking
-#### 3.1. Visual Studio에서 C++ DLL Project를 생성한다.
+#### 3.1. Visual Studio C++ DLL Project를 생성
 ![DLL Project Creation1](/assets/2021-07-04-Exporting-C_C++_Library_to_Python_Module_by_Boost_Python/DLL_Project_Creation1.png)<br>
 ![DLL Project Creation2](/assets/2021-07-04-Exporting-C_C++_Library_to_Python_Module_by_Boost_Python/DLL_Project_Creation2.png)
 
