@@ -2,7 +2,7 @@
 layout: single
 title:  "Boost Python 라이브러리를 활용하여 C/C++ 라이브러리를 Python Module로 Export하기"
 date:   2021-07-04 21:08:00 +0900
-categories: C/C++ Python Boost
+categories: Cpp Boost Python
 classes: narrow
 toc: true
 ---
