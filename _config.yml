@@ -295,6 +295,8 @@ defaults:
       classes: wide
       toc_label: "Table of Contents"
       toc_sticky: true
+      sidebar:
+        nav: "categories"
 
   # _pages
   - scope:

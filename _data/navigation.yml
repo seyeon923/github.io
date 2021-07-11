@@ -10,3 +10,13 @@ main:
   #   url: /collection-archive/
   # - title: "Sitemap"
   #   url: /sitemap/
+
+categories:
+  - title: Programming
+    children:
+      - title: "C/C++"
+        url: /categories/c-c/
+      - title: "Python"
+        url: /categories/python/
+      - title: "Boost"
+        url: /categories/boost/
