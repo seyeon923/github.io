@@ -797,6 +797,188 @@ BOOST_PYTHON_MODULE(PyModuleName) {
 }
 ```
 
+### Call Policies
+다음의 함수를 파이썬으로 내보낸다고 해보자.
+
+``` c++
+struct Y {
+    X x;
+    Z* ptr_z = nullptr;
+};
+X& F(Y& y, Z* z){
+    y.z = z;
+    return y.x;
+}
+```
+
+그리고 노출된 함수를 다음처럼 사용한다고 해보자.
+
+``` python
+x = F(y, z)
+del y
+x.SomeFunction() # CRASH!
+```
+
+문제가 무엇인지 바로 알 수 있을 것이다.<br>
+<br>
+
+함수 `F`에서 반환된 `x`는 `y` 객체가 가지고 있는 멤버의 참조인데 `y`가 소멸되면 `x`도 같이 소멸될 것이다.<br>
+소멸된 객체의 멤버함수를 호출하고 있으니 심각한 문제가 있음을 알 수 있다.<br>
+<br>
+
+실제로 `X`에 다음처럼 내부 멤버변수 `x_`를 반환하는 멤버함수 `Get`을 추가한 뒤 위와 같은 경우를 테스트해보면 동작이 이상하게 되는 것을 알 수 있다.
+
+``` c++
+struct X {
+    X(int x) :x_(x) {
+        std::cout << "X(" << x << ")" << std::endl;
+    }
+    ~X() {
+        std::cout << "~X(): " << x_ << std::endl;
+    }
+    int Get() const { return x_; }
+
+private:
+    int x_;
+};
+
+struct Z {
+    Z(int z) : z_(z) {
+        std::cout << "Z(" << z << ")" << std::endl;
+    }
+    ~Z() {
+        std::cout << "~Z(): " << z_ << std::endl;
+    }
+    int Get() const { return z_; }
+    void Set(int z) { z_ = z; }
+
+private:
+    int z_;
+};
+
+struct Y {
+    X x;
+    Z* z;
+
+    Y(int y) : x(y) {
+        std::cout << "Y(" << y << ")" << std::endl;
+        z = nullptr;
+    }
+    ~Y() {
+        std::cout << "~Y(): " << x.Get() << std::endl;
+    }
+    int GetZ() const { return z->Get(); }
+};
+```
+
+<br>
+위의 `X`, `Y`, `Z`와 함수 `F`를 다음처럼 내보낸다.
+
+``` c++
+class_<X>("X", init<int>())
+    .def("Get", &X::Get);
+class_<Y>("Y", init<int>())
+    .def("GetZ", &Y::GetZ);
+class_<Z>("Z", init<int>())
+    .add_property("Val", &Z::Get, &Z::Set);
+
+def("F", &F, return_value_policy<reference_existing_object>()); //<- May crash
+```
+
+`F`를 노출 시키는 `def` 함수의 `return_value_policy<reference_existing_object>()` 인자는 `F`의 반환 값이 C++의 객체 참조를 그대로 반환함을 나타낸다.<br>
+<br>
+
+다음은 이를 테스트한 파이썬 코드이다.
+
+``` python
+import PyModuleName
+
+y = PyModuleName.Y(10)
+# Out:
+#   X(10)
+#   Y(10)
+z = PyModuleName.Z(20)
+# Out:
+#   Z(20)
+
+x = PyModuleName.F(y, z)
+del y
+# Out:
+#   ~Y(): 10
+#   ~X(): 10
+
+print(x.Get()) # ???
+```
+
+`y` 가 소멸되면서 `x`도 소멸되어 `x.Get()` 의 값이 임의의 값이 나오는 것을 확인할 수 있다.<br>
+<br>
+
+`F`를 노출 시킬 때 다음처럼 `return_internal_reference`를 사용하면 위와 같은 경우가 발생하는 것을 막을 수 있다.
+
+``` c++
+def("F", &F, return_internal_reference<1>())
+```
+
+`return_internal_reference<1>` 은 함수의 반환되는 참조의 소유를 첫번째(템플릿 인자 1에 의해) 인자가 가지고 있음을 나타낸다.<br>
+(즉, `return_internal_reference<n>` 은 반환되는 참조가 함수의 n번째 인자에 의해 소유됨을 의미한다.)<br>
+따라서, 위처럼 반환되는 참조의 소유를 나타내게 되면 `del y`로 `y`를 지워도 `x`에 대한 참조가 살아있어 둘다 소멸되지 않고 `x.Get()`이 10을 반환하는 것을 확인할 수 있다.
+
+<div class="notice--primary" markdown="1">
+**<i class="fa fa-exclamation-triangle" aria-hidden="true"></i> NOTE**
+
+함수 `F`의 반환되는 참조를 복사해서 반환하도록 노출시킬 수도 있겠지만 그럴 경우 C++ 함수의 의도와 맞지 않을 수 있다.
+
+``` python
+F(y, z).Set(42)
+print(y.x.Get()) # 42?
+```
+
+위와 같은 경우 `F`가 `y.x`의 복사본을 반환하게 되면 `.Set(42)`가 `y.x`에 적용되지 않고 복사된 임시객체에 적용되게 될 것이다.
+</div>
+
+함수 `F`에 아직 하나의 문제가 더 남아있는데 다음의 코드를 보자.
+
+``` python
+x = F(y, z) # y.z 가 z를 가르킴
+del z # z 소멸
+y.GetZ() # Crash
+```
+
+함수 `F`에 의해 `y.z`가 `z`를 가르키는 상태에서 `del z`에 의해 `z`가 소멸되었는데 `y.z`가 이 소멸된 `z`를 가르키고 있는 상태에서 `y.GetZ()`를 통해 소멸된 `z`를 접근하면서 오동작을 일으키게 된다.<br>
+따라서, `return_internal_reference<1>`에 추가로 `with_custodian_and_ward` 정책을 전달하여 `z`가 `y`에 의해 참조됨을 나타내주면 위와 같은 현상을 막을 수 있다.
+
+``` c++
+def("F", &F,
+    return_internal_reference <1, 
+        with_custodian_and_ward<1, 2>>());
+```
+
+`with_custodian_and_ward<1, 2>`는 첫(1) 번째 인자(custodian)가 두(2) 번째 인자(ward) 를 참조하고 있음을 의미한다.<br>
+> <small><i class="fa fa-info-circle" aria-hidden="true"></i> custodian은 **관리인**, ward는 **피보호자**를 뜻한다.</small>
+
+2개 이상의 정책을 전달할 때는 위처럼 마지막 템플릿 인자에 nested loop 처럼 추가하면 된다.<br>
+다음은 2개이상의 정책을 전달할 때의 일반적인 문법을 나타낸 것이다.
+
+```
+policy1<args...,
+    policy2<args...,
+        policy3<args...>>>
+```
+
+다음은 미리 정의된 call polices 목록이다.
+
+- **with_custodian_and_ward**: 함수 인자간의 수명(lifetime) 관계를 표시
+- **with_custodian_and_ward_postcall**: 함수 인자들과 반환 결과간의 수명 관계를 표시
+- **return_internal_reference**: 함수 인자 하나와 반환 결과간의 수명 관계를 표시
+- **return_value_policy<T> T는 다음 중 하나:**
+  - **reference_existing_object**
+  - **copy_const_reference**
+  - **copy_non_const_reference**
+  - **manage_new_object**
+
+위 리스트들의 자세한 정보는 [여기](https://www.boost.org/doc/libs/1_76_0/libs/python/doc/html/reference/function_invocation_and_creation/models_of_callpolicies.html)에서 볼 수 있다.
+
+
 [boost_1_76_0_link]: https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/
 [boost_1_76_0.7z_link]: https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.7z
 [boost_1_76_0.zip_link]: https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.zip
