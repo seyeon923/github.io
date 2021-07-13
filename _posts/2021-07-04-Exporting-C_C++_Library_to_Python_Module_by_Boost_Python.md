@@ -978,6 +978,110 @@ policy1<args...,
 
 위 리스트들의 자세한 정보는 [여기](https://www.boost.org/doc/libs/1_76_0/libs/python/doc/html/reference/function_invocation_and_creation/models_of_callpolicies.html)에서 볼 수 있다.
 
+## Object Interface
+기본적으로 Boost Python의 클래스 `object`를 통해 모든 파이썬 객체를 파이썬에서처럼 다룰 수 있다.<br>
+
+> <small><i class="fa fa-info-circle" aria-hidden="true"></i> Boost Python 문서에서는 `object` 가 `PyObject*`를 래핑한 클래스라고 설명하고 있다.</small>
+
+``` python
+def mul(x, y):
+    return x * y
+
+def f(x, y):
+    if(y == 'foo'):
+        x[3:7] = 'bar'
+    else:
+        x.val += y(3, 2)
+    return x
+
+def getfunc():
+    return mul
+```
+
+위의 파이썬 코드는 다음의 Boost.Python 을 통해 다음처럼 C++로 동일하게 표현할 수 있다.
+
+``` c++
+object mul(object x, object y) {
+    return x * y;
+}
+
+object f(object x, object y) {
+    if (y == "foo") {
+        x.slice(3, 7) = "bar";
+    }
+    else {
+        x.attr("val") += y(3, 2);
+    }
+    return x;
+}
+
+object getfunc() {
+    return object(mul);
+}
+```
+
+위 코드를 다음처럼 파이썬 모듈로 내보낸 뒤 테스트 해보면 동일한 결과가 나오는 것을 확인할 수 있다.
+
+``` c++
+BOOST_PYTHON_MODULE(PyModuleName) {
+    def("mul", mul);
+    def("f", f);
+    def("getfunc", getfunc);
+}
+```
+
+``` python
+import PyModuleName
+
+class X:
+    def __init__(self, val):
+        self.val = val
+
+x = [0,1,2,3,4,5,6,7,8,9]
+x = f(x, 'foo') # 파이썬에서 선언된 함수 f 호출
+print(x) # [0, 1, 2, 'b', 'a', 'r', 7, 8, 9]
+
+x = [0,1,2,3,4,5,6,7,8,9]
+x = PyModuleName.f(x, 'foo') # C++ 에서 내보낸 함수 f 호출
+print(x) # [0, 1, 2, 'b', 'a', 'r', 7, 8, 9]
+
+x = X(10)
+x = f(x, getfunc()) # 파이썬에서 선언된 함수 f, getfunc 호출
+print(x.val) # 16
+
+x = X(10)
+x = PyModuleName.f(x, PyModuleName.getfunc()) # C++ 에서 내보낸 함수 사용
+print(x.val) # 16
+```
+
+### Derived Object Types
+Boost.Python 에는 파이썬과 대응되는 다음의 파생 클래스를 제공한다.
+
+- list
+- dict
+- tuple
+- str
+- long_
+- enum_
+
+위 파생 클래스 타입들은 파이썬 타입들과 동일하게 동작한다.<br>
+예:
+```
+str(1) ==> '1'
+```
+
+또한 파이썬 객체의 멤버 메소드를 동일하게 가지고 있는 경우도 있다.<br>
+예를 들면 `dict`의 `keys()` 멤버 함수는 Boost.Python의 `dict` 클래스도 동일하게 가지고 있다.<br>
+<br>
+
+`make_tuple` 함수를 통해 `tuple` 객체를 만들 수 도 있다.
+
+``` c++
+make_tuple(123, 'D', "Hello, World", 0.0); // (123, 'D', 'Hello, World', 0.0)
+```
+
+
+
 
 [boost_1_76_0_link]: https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/
 [boost_1_76_0.7z_link]: https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.7z
