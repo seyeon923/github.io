@@ -1080,7 +1080,116 @@ str(1) ==> '1'
 make_tuple(123, 'D', "Hello, World", 0.0); // (123, 'D', 'Hello, World', 0.0)
 ```
 
+Boost.Python의 `object`를 인자로 받는 함수를 만들어 이를 파이썬 모듈로 내보내는 경우 호출 시 해당 타입 혹은 서브타입을 전달해야 한다.<br>
+예를 들어 다음처럼 `str`을 인자로 받는 함수를 만들어 파이썬 모듈로 내보내면 파이썬에서 호출 시 파이썬의 `str` 혹은 그 서브타입만 전달 할 수 있다.
 
+``` c++
+object ToUpper(str python_str) {
+    str uppered = python_str.upper(); // better
+    //object uppered = python_str.attr("upper")(); // also available
+    object msg = "%s is uppered to %s" % make_tuple(python_str, uppered);
+    return msg;
+}
+```
+
+위 코드를 보면 파이썬 문자열 객체의 멤버 메소드인 `.upper()`를 C++ 멤버 함수로 제공하는 것을 알 수 있다.<br>
+또한, 파이썬의 `"format" % (x, y, z)`처럼 사용하는 문자열 포멧 기능을 C++에서도 제공하는 것을 알 수 있다.
+
+### class_\<T\> as objects
+Boost.Python의 `object`의 동적인 성질에 따라 어떤 `class_<T>` 타입이든 `object` 타입이 될 수 있다.<br>
+다음은 `class_<T>` 타입을 `object` 타입으로 래핑한 것을 보여준다.
+
+``` c++
+object vec345 = (
+    class_<Vec2>("Vec2", init<double, double>())
+        .def_readonly("length", &Vec2::length)
+        .def_readonly("angle", &Vec2::angle)
+    )(3.0, 4.0); // Vec2(3, 4) to object
+
+assert(vec345.attr("length") == 5.0);
+```
+
+### C++ 객체 꺼내기
+`object` 객체에서 C++ 타입의 값을 꺼내기 위해서는 `extract<T>` 함수를 사용해야 한다.<br>
+
+``` c++
+double x = o.attr("length"); // compile error
+```
+
+위 코드를 빌드해보면 컴파일 에러가 발생하는 것을 확인할 수 있는데, `object` 타입은 `double` 타입으로 암시적 형변환 될 수 없기 때문이다.<br>
+대신 다음처럼 `extract<T>` 함수를 사용하면 C++ 타입으로 변환이 가능하게 된다.
+
+``` c++
+double l = extract<double>(o.attr("length"));
+Vec2& v = extract<Vec2&>(o);
+```
+
+첫 번째 라인은 `o` 객체의 `length` 속성을 double 타입으로 추출을 **시도**하는 것이고, <br>
+두 번째 라인은 `o` 객체를 `Vec2` 타입으로 가져오는 것을 **시도**하는 것이다.<br>
+<br>
+
+여기서 **시도**한다고 말하는 이유는 `extract<T>` 함수에서 `T`타입으로 변환이 항상 성공하는 것이 아니기 때문이다.<br>
+예를 들어 위에서 `o`객체의 타입이 `Vec2`인데 `extract<double>(o)` 처럼 double 값을 꺼내려고 한다면 예외가 발생하게 될 것이다.<br>
+따라서 안전하게 특정 타입으로 꺼내기 위해서 다음처럼 해당 타입으로 꺼낼 수 있는지 테스트하는 것이 필요하다.
+
+``` c++
+extract<Vec2&> x(o);
+if (x.check()) { // 변환이 되면 true, 아니면 false
+    Vec2& v = x(); ...
+```
+
+### Enums
+``` c++
+enum Color { red, bule };
+```
+
+위의 enum 타입은 다음처럼 내보낼 수 있다.
+
+``` c++
+enum_<Color>("Color")
+    .value("red", red)
+    .value("blue", blue)
+    ;
+```
+
+<div class="notice--primary" markdown="1">
+
+**<i class="fa fa-info-circle" aria-hidden="true"></i> scope**<br>
+
+지금까지 내보낸 모든 클래스, 함수, enum 들은 현재 `scope()`에 노출 되게 되는데 기본은 현재 모듈에 해당하는 네임스페이스가 된다.<br>
+현재 모듈에 새로운 네임 스페이스에 무언가를 노출시키고 싶으면 해당 네임스페이스에 해당하는 클래스를 노출 시키면서 이를 `scope` 객체에 대입하면 된다.<br>
+이후에 선언되는 것들은 해당 네임스페이스에 노출되게 되며 다시 이전의 네임스페이스에 노출 시키고 싶으면 해당 `scope` 객체를 파괴시켜주면 된다.<br>
+
+``` c++
+struct SomeScope {
+    enum Color { red, green, blue };
+};
+
+BOOST_PYTHON_MODULE(PyModuleName){
+    // scope()는 현재 모듈
+    // ...
+    {
+        // change current scope
+        // 현재 scope()는 현재모듈.SomeScope
+        scope in_some_scope = class_<SomeScope>("SomeScope");
+
+        // Expose enum SomeScope::Color as SomeScope.Color
+        enum_<SomeScope::Color>("Color")
+            .value("red", SomeScope::red)
+            .value("blue", SomeScope::blue);
+
+        in_some_scope.attr("current_color") = SomeScope::red;
+    } // ~in_some_scope() : revert to orignal scope
+    
+    // 다시 scope()는 현재 모듈
+    // ...
+    
+}
+```
+
+위 코드는 모듈아래 `SomeScope`라는 이름의 네임스페이스에 `Color` enum을 노출시키는 코드이다.<br>
+블록안에 선언된 지역변수는 해당 블록을 벗어나면 자동으로 소멸 되는 성질을 이용하여 `in_some_scope` 변수가 자동으로 소멸되도록 하였다.(`in_some_scope` 변수가 소멸되면서 `scope()`가 `PyModuleName.SomeScope` 에서 `PyModuleName`으로 돌아옴)<br>
+</div>
 
 
 [boost_1_76_0_link]: https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/
