@@ -1191,6 +1191,74 @@ BOOST_PYTHON_MODULE(PyModuleName){
 블록안에 선언된 지역변수는 해당 블록을 벗어나면 자동으로 소멸 되는 성질을 이용하여 `in_some_scope` 변수가 자동으로 소멸되도록 하였다.(`in_some_scope` 변수가 소멸되면서 `scope()`가 `PyModuleName.SomeScope` 에서 `PyModuleName`으로 돌아옴)<br>
 </div>
 
+## Iterator
+다음은 `std::vector<double>` 의 iterator를 python iterator로 노출시킨 것이다.
+
+``` c++
+std::vector<double> CreateVector(double start, double stride, size_t num_ele) {
+    std::vector<double> ret(num_ele);
+    double val = start;
+    for (int i = 0; i < num_ele; ++i) {
+        ret[i] = val;
+        val += stride;
+    }
+    return ret;
+}
+
+BOOST_PYTHON_MODULE(PyModuleName){
+    def("CreateVector", CreateVector);
+
+    class_<std::vector<double>>("Vector")
+        .def("__iter__", iterator<std::vector<double>>());
+}
+```
+
+다음은 위 코드를 테스트한 것이다.
+
+``` python
+import PyModuleName
+
+vec = PyModuleName.CreateVector(1, 0.1, 10)
+
+for val in vec:
+    print('%.2f' % val)
+# Output:
+    # 1.00
+    # 1.10
+    # 1.20
+    # 1.30
+    # 1.40
+    # 1.50
+    # 1.60
+    # 1.70
+    # 1.80
+    # 1.90
+```
+
+다음은 `stl_input_iterator`를 이용해서 파이썬 `list`로 C++ `std::list`를 초기화하는 코드이다.
+
+``` c++
+template<typename T>
+void list_assign(std::list<T>& l, object o) {
+    // Turn a Python sequence into an STL input range
+    stl_input_iterator<T> begin(o), end;
+    l.assign(begin, end);
+}
+
+// Part of the wrapper for list<int>
+class_<std::list<int> >("list_int")
+    .def("assign", &list_assign<int>)
+    // ...
+    ;
+```
+
+이제 다음처럼 파이썬에서 int 리스트를 `list_int` 객체에 복사할 수 있다.
+
+``` python
+x = list_int()
+x.assign([1,2,3,4,5])
+```
+
 
 [boost_1_76_0_link]: https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/
 [boost_1_76_0.7z_link]: https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.7z
