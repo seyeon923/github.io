@@ -23,14 +23,14 @@ name                     : "Kim Se-yeon"
 description              : "Seyeon's blog"
 url                      : "https://tpdussla93.github.io"
 baseurl                  : # the subpath of your site, e.g. "/blog"
-repository               : tpdussla93/tpdussla93.github.io
+repository               : "tpdussla93/tpdussla93.github.io"
 teaser                   : # path of fallback teaser image, e.g. "/assets/images/500x300.png"
 logo                     : # path of logo image to display in the masthead, e.g. "/assets/images/88x88.png"
 masthead_title           : # overrides the website title displayed in the masthead, use " " for no title
 breadcrumbs              : false # true, false (default)
 words_per_minute         : 165
 comments:
-  provider               : # false (default), "disqus", "discourse", "facebook", "staticman", "staticman_v2", "utterances", "giscus", "custom"
+  provider               : "utterances" # false (default), "disqus", "discourse", "facebook", "staticman", "staticman_v2", "utterances", "giscus", "custom"
   disqus:
     shortname            : # https://help.disqus.com/customer/portal/articles/466208-what-s-a-shortname-
   discourse:
@@ -289,7 +289,7 @@ defaults:
       show_date: true
       date_format: "%Y-%m-%d"
       read_time: true
-      comments: false
+      comments: true
       share: true
       related: true
       classes: wide
