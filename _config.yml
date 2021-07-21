@@ -308,7 +308,7 @@ defaults:
   # categories
   - scope:
       path: ""
-      type: categories
+      type: pages
     values:
       layout: categories
       classes: wide
@@ -317,8 +317,10 @@ defaults:
   # category
   - scope:
       path: ""
-      type: category
+      type: pages
     values:
       layout: category
       classes: wide
       comments: false
+      sidebar:
+        nav: "categories"
