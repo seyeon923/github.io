@@ -227,3 +227,54 @@ void Foo(T v){
 위의 경우 명확한 타입 `int`를 가지고 `*` 참조 연산을 하고 있으므로 컴파일 에러가 발생하게 된다.<br>
 `Print` 함수 템플릿의 경우 인스턴스화 되기 전에는 어떤 타입인지 모르는 `T` 타입에 `*` 참조 연산을 하고 있으므로 인스턴스화 되기 전에는 에러여부를 컴파일러가 알 수 없다.
 </div>
+
+<div class="notice--info" markdown="1">
+
+`std::integral_constant` 와 `type_traits`는 C++11 부터 들어온 개념이지만 새로운 문법으로 생긴 방법이 아니라 라이브러리에 추가된 것으로 C++11 이전에서도 위와 같은 클래스를 직접 만들어 적용할 수 있는 방법이다.
+
+``` c++
+#include <iostream>
+
+template<size_t N> struct integral_constant {
+    enum { value = N };
+};
+
+typedef integral_constant<1> true_type;
+typedef integral_constant<2> false_type;
+
+template<typename T>
+struct is_pointer : false_type {};
+
+template<typename T>
+struct is_pointer<T*> : true_type {};
+
+namespace detail {
+    template<typename T>
+    void Print(const T& v, true_type) {
+        std::cout << v << " -> " << *v << std::endl;
+    }
+
+    template<typename T>
+    void Print(const T& v, false_type) {
+        std::cout << v << std::endl;
+    }
+}
+
+template<typename T>
+void Print(const T& v) {
+    detail::Print(v, is_pointer<T>());
+}
+
+int main() {
+    int i = 10;
+
+    Print(&i);
+    Print(i);
+
+    return 0;
+}
+```
+
+위 코드를 `g++`로 `-std=c++98` 옵션을 주고 컴파일 시 문제 없이 컴파일 되고 실행까지 되는 것을 확인 할 수 있다.
+
+</div>
