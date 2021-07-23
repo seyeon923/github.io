@@ -1,5 +1,5 @@
 ---
-title:  "SFINAE와 std::enable_if"
+title:  "C++ SFINAE와 std::enable_if"
 date:   2021-07-22 22:00:00 +0900
 categories: 
     - C/C++ 
