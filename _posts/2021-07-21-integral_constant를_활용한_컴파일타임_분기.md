@@ -1,6 +1,6 @@
 ---
 layout: single
-title:  "C++ std::integral_constant를 활용한 컴파일 타임 분기"
+title:  "C++ - std::integral_constant를 활용한 컴파일 타임 분기"
 date:   2021-07-21 18:00:00 +0900
 categories: 
     - C/C++ 
