@@ -6,7 +6,7 @@ categories:
 ---
 
 ## Overview
-앞선 포스트 [std::integral_constant를 활용한 컴파일 타임 분기]({% post_url 2021-07-21-integral_constant를_활용한_컴파일타임_분기 %})에서 `std::integral_constant`를 통해 템플릿 인자 `T` 타입에 따라 템플릿의 인스턴스화 여부를 선택할 수 있는 방법을 알아봤다. `std::enable_if`를 통해서도 템플릿의 인스턴스화 여부를 선택할 수 있는데, 그 방법과 원리에 대해서 알아보자.
+앞선 포스트 [std::integral_constant를 활용한 컴파일 타임 분기]({% post_url 2021-07-21-Compile-time_dispatch_using_std::integral_constant %})에서 `std::integral_constant`를 통해 템플릿 인자 `T` 타입에 따라 템플릿의 인스턴스화 여부를 선택할 수 있는 방법을 알아봤다. `std::enable_if`를 통해서도 템플릿의 인스턴스화 여부를 선택할 수 있는데, 그 방법과 원리에 대해서 알아보자.
 
 먼저 앞선 포스트의 `Print` 함수 템플릿을 `std::enable_if`를 사용해서 `T`의 포인터 타입 여부에 따라 템플릿 인스턴스화를 선택하는 코드를 보면 다음과 같다.
 
